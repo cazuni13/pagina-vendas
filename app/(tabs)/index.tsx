@@ -1,98 +1,111 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import React from 'react';
+import { Platform, StatusBar } from 'react-native';
+import styled from 'styled-components/native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const ScreenContainer = styled.View`
+  flex: 1;
+  background-color: #f8f9fa;
+`;
 
-export default function HomeScreen() {
+const HeaderBackground = styled.View`
+  background-color: #007f5f;
+  padding-top: ${Platform.OS === 'ios' ? '60px' : '45px'};
+  padding-bottom: 16px;
+  padding-horizontal: 16px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const HeaderLeft = styled.TouchableOpacity`
+  padding: 4px;
+`;
+
+const HeaderRight = styled.View`
+  align-items: flex-end;
+`;
+
+const GoalText = styled.Text`
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+`;
+
+const GoalProgressBg = styled.View`
+  width: 90px;
+  height: 4px;
+  background-color: #005f43;
+  border-radius: 2px;
+  overflow: hidden;
+`;
+
+const GoalProgressFill = styled.View<{ progress: number }>`
+  width: ${props => props.progress}%;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 2px;
+`;
+
+const TitleSection = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-horizontal: 16px;
+  padding-top: 20px;
+  padding-bottom: 16px;
+`;
+
+const ScreenTitle = styled.Text`
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+`;
+
+const ExportButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  background-color: #ffffff;
+  border-width: 1px;
+  border-color: #e5e7eb;
+  border-radius: 6px;
+  padding-vertical: 8px;
+  padding-horizontal: 12px;
+  gap: 6px;
+`;
+
+const ExportText = styled.Text`
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+`;
+
+export default function DashboardScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <ScreenContainer>
+      <StatusBar barStyle="light-content" backgroundColor="#007f5f" />
+      
+      <HeaderBackground>
+        <HeaderLeft activeOpacity={0.7}>
+          <Feather name="menu" size={24} color="#ffffff" />
+        </HeaderLeft>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <HeaderRight>
+          <GoalText>R$ 4,0K / R$ 10K</GoalText>
+          <GoalProgressBg>
+            <GoalProgressFill progress={40} />
+          </GoalProgressBg>
+        </HeaderRight>
+      </HeaderBackground>
+
+      <TitleSection>
+        <ScreenTitle>Vendas</ScreenTitle>
+        <ExportButton activeOpacity={0.7}>
+          <Feather name="file-text" size={15} color="#4b5563" />
+          <ExportText>Exportar</ExportText>
+        </ExportButton>
+      </TitleSection>
+    </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
