@@ -1,7 +1,66 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Platform, StatusBar } from 'react-native';
+import { FlatList, Platform, StatusBar } from 'react-native';
 import styled from 'styled-components/native';
+
+interface SaleItem {
+  id: string;
+  date: string;
+  product: string;
+  clientName: string;
+  clientEmail: string;
+  price: number;
+  approved: boolean;
+}
+
+const PRODUCTS = [
+  { name: 'VIRE O JOGO', price: 197.00 },
+  { name: 'COMUNICAÇÃO EM PÚBLICO', price: 97.00 },
+  { name: 'FÓRMULA NEGÓCIO ONLINE', price: 297.00 },
+  { name: 'MÉTODO AVANÇADO', price: 497.00 },
+];
+
+const CLIENTS = [
+  { name: 'ELIELSON BASTOS', email: 'elielson.bastos@hotmail.com' },
+  { name: 'Adson M. G.', email: 'adson.gomes@gmail.com' },
+  { name: 'Riquelme Silva', email: 'riquelme.dev@gmail.com' },
+  { name: 'Silas Oliveira', email: 'silas.oliver@gmail.com' },
+  { name: 'Darian Castro', email: 'darian.castro@gmail.com' },
+  { name: 'Stedson Souza', email: 'stedson.souza@outlook.com' },
+  { name: 'BRUNO GOMES', email: 'bruno.gomes@live.com' },
+  { name: 'Wallace Araujo', email: 'wallace.araujo@gmail.com' },
+  { name: 'Yago Vitor', email: 'yago.vitor@gmail.com' },
+  { name: 'andre alves', email: 'andre.alves@yahoo.com.br' },
+  { name: 'Carlos Eduardo', email: 'carlos.eduardo@gmail.com' },
+  { name: 'Pedro Henrique', email: 'pedro.henrique@gmail.com' },
+  { name: 'Gabriel Ribeiro', email: 'gabriel.ribeiro@gmail.com' },
+  { name: 'Thiago Mendes', email: 'thiago.mendes@gmail.com' },
+  { name: 'Nathan Ferraz', email: 'nathan.ferraz@outlook.com' },
+  { name: 'GUSTAVO SILVA', email: 'gustavo.silva@hotmail.com' },
+  { name: 'Dennys Oliveira', email: 'dennys.oliveira@gmail.com' },
+  { name: 'Aline Souza', email: 'aline.souza@gmail.com' },
+  { name: 'Beatriz Costa', email: 'beatriz.costa@hotmail.com' },
+  { name: 'Marcos Vinicius', email: 'marcos.v@gmail.com' },
+];
+
+const MOCK_SALES: SaleItem[] = Array.from({ length: 40 }, (_, index) => {
+  const client = CLIENTS[index % CLIENTS.length];
+  const productObj = PRODUCTS[index % PRODUCTS.length];
+  const day = String(29 - (index % 28)).padStart(2, '0');
+  const month = String(11 - (index % 5)).padStart(2, '0');
+  const date = `${day}/${month}/2025`;
+  const approved = index % 5 !== 0;
+
+  return {
+    id: String(index + 1),
+    date,
+    product: productObj.name,
+    clientName: client.name,
+    clientEmail: client.email,
+    price: productObj.price,
+    approved,
+  };
+});
 
 const ScreenContainer = styled.View`
   flex: 1;
@@ -174,6 +233,71 @@ const TabButtonText = styled.Text<{ isActive: boolean }>`
   color: ${props => props.isActive ? '#3b5998' : '#9ca3af'};
 `;
 
+const TableHeaderContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-horizontal: 16px;
+  padding-vertical: 8px;
+  border-bottom-width: 1px;
+  border-bottom-color: #e5e7eb;
+  background-color: #f8f9fa;
+  margin-top: 10px;
+`;
+
+const TableHeaderLabel = styled.Text<{ width: string; align?: string }>`
+  width: ${props => props.width};
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-align: ${props => props.align || 'left'};
+  letter-spacing: 0.5px;
+`;
+
+const ListSeparator = styled.View`
+  height: 1px;
+  background-color: #f3f4f6;
+`;
+
+const RowContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-vertical: 16px;
+  padding-horizontal: 16px;
+  background-color: #ffffff;
+`;
+
+const DateColumn = styled.Text`
+  width: 25%;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+`;
+
+const ProductColumn = styled.Text`
+  width: 35%;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+`;
+
+const ClientColumn = styled.View`
+  width: 40%;
+`;
+
+const ClientNameText = styled.Text`
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+`;
+
+const ClientEmailText = styled.Text`
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 2px;
+`;
+
 export default function DashboardScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeTab, setActiveTab] = useState<'aprovadas' | 'todas'>('aprovadas');
@@ -195,49 +319,75 @@ export default function DashboardScreen() {
         </HeaderRight>
       </HeaderBackground>
 
-      <TitleSection>
-        <ScreenTitle>Vendas</ScreenTitle>
-        <ExportButton activeOpacity={0.7}>
-          <Feather name="file-text" size={15} color="#4b5563" />
-          <ExportText>Exportar</ExportText>
-        </ExportButton>
-      </TitleSection>
+      <FlatList
+        data={MOCK_SALES}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <RowContainer>
+            <DateColumn>{item.date}</DateColumn>
+            <ProductColumn numberOfLines={2}>{item.product}</ProductColumn>
+            <ClientColumn>
+              <ClientNameText numberOfLines={1}>{item.clientName}</ClientNameText>
+              <ClientEmailText numberOfLines={1}>{item.clientEmail}</ClientEmailText>
+            </ClientColumn>
+          </RowContainer>
+        )}
+        ItemSeparatorComponent={() => <ListSeparator />}
+        ListHeaderComponent={
+          <>
+            <TitleSection>
+              <ScreenTitle>Vendas</ScreenTitle>
+              <ExportButton activeOpacity={0.7}>
+                <Feather name="file-text" size={15} color="#4b5563" />
+                <ExportText>Exportar</ExportText>
+              </ExportButton>
+            </TitleSection>
 
-      <SearchWrapper>
-        <SearchInputContainer>
-          <Feather name="search" size={18} color="#9ca3af" />
-          <StyledInput
-            placeholder="Buscar por produto ou cliente..."
-            placeholderTextColor="#9ca3af"
-            value={searchText}
-            onChangeText={setSearchText}
-            clearButtonMode="while-editing"
-          />
-          <FilterIconWrapper activeOpacity={0.7}>
-            <Feather name="sliders" size={18} color="#9ca3af" />
-          </FilterIconWrapper>
-        </SearchInputContainer>
-      </SearchWrapper>
+            <SearchWrapper>
+              <SearchInputContainer>
+                <Feather name="search" size={18} color="#9ca3af" />
+                <StyledInput
+                  placeholder="Buscar por produto ou cliente..."
+                  placeholderTextColor="#9ca3af"
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  clearButtonMode="while-editing"
+                />
+                <FilterIconWrapper activeOpacity={0.7}>
+                  <Feather name="sliders" size={18} color="#9ca3af" />
+                </FilterIconWrapper>
+              </SearchInputContainer>
+            </SearchWrapper>
 
-      <CardsWrapper>
-        <CardContainer>
-          <CardTitle>Vendas encontradas</CardTitle>
-          <CardValue>70</CardValue>
-        </CardContainer>
-        <CardContainer>
-          <CardTitle>Valor líquido</CardTitle>
-          <CardValue>R$ 409,72</CardValue>
-        </CardContainer>
-      </CardsWrapper>
+            <CardsWrapper>
+              <CardContainer>
+                <CardTitle>Vendas encontradas</CardTitle>
+                <CardValue>40</CardValue>
+              </CardContainer>
+              <CardContainer>
+                <CardTitle>Valor líquido</CardTitle>
+                <CardValue>R$ 10.280,00</CardValue>
+              </CardContainer>
+            </CardsWrapper>
 
-      <TabsContainer>
-        <TabButton isActive={activeTab === 'aprovadas'} onPress={() => setActiveTab('aprovadas')}>
-          <TabButtonText isActive={activeTab === 'aprovadas'}>Aprovadas</TabButtonText>
-        </TabButton>
-        <TabButton isActive={activeTab === 'todas'} onPress={() => setActiveTab('todas')}>
-          <TabButtonText isActive={activeTab === 'todas'}>Todas</TabButtonText>
-        </TabButton>
-      </TabsContainer>
+            <TabsContainer>
+              <TabButton isActive={activeTab === 'aprovadas'} onPress={() => setActiveTab('aprovadas')}>
+                <TabButtonText isActive={activeTab === 'aprovadas'}>Aprovadas</TabButtonText>
+              </TabButton>
+              <TabButton isActive={activeTab === 'todas'} onPress={() => setActiveTab('todas')}>
+                <TabButtonText isActive={activeTab === 'todas'}>Todas</TabButtonText>
+              </TabButton>
+            </TabsContainer>
+
+            <TableHeaderContainer>
+              <TableHeaderLabel width="25%">DATA</TableHeaderLabel>
+              <TableHeaderLabel width="35%">PRODUTO</TableHeaderLabel>
+              <TableHeaderLabel width="40%">CLIENTE</TableHeaderLabel>
+            </TableHeaderContainer>
+          </>
+        }
+        contentContainerStyle={{ paddingBottom: 30 }}
+      />
     </ScreenContainer>
   );
 }
