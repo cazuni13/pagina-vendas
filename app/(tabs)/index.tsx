@@ -1,17 +1,10 @@
+import { CardResumo } from '@/components/CardResumo';
+import { FiltroStatus } from '@/components/FiltroStatus';
+import { ItemVenda, SaleItem } from '@/components/ItemVenda';
 import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, Platform, StatusBar } from 'react-native';
 import styled from 'styled-components/native';
-
-interface SaleItem {
-  id: string;
-  date: string;
-  product: string;
-  clientName: string;
-  clientEmail: string;
-  price: number;
-  approved: boolean;
-}
 
 const PRODUCTS = [
   { name: 'VIRE O JOGO', price: 197.00 },
@@ -183,56 +176,6 @@ const CardsWrapper = styled.View`
   gap: 12px;
 `;
 
-const CardContainer = styled.View`
-  background-color: #ffffff;
-  border-radius: 8px;
-  border-width: 1px;
-  border-color: #e5e7eb;
-  padding: 16px;
-  shadow-color: #000;
-  shadow-offset: 0px 1px;
-  shadow-opacity: 0.03;
-  shadow-radius: 2px;
-  elevation: 1;
-`;
-
-const CardTitle = styled.Text`
-  font-size: 12px;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-`;
-
-const CardValue = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-`;
-
-const TabsContainer = styled.View`
-  flex-direction: row;
-  padding-horizontal: 16px;
-  margin-vertical: 14px;
-  gap: 12px;
-`;
-
-const TabButton = styled.TouchableOpacity<{ isActive: boolean }>`
-  background-color: ${props => props.isActive ? '#e8edff' : 'transparent'};
-  padding-vertical: 8px;
-  padding-horizontal: 16px;
-  border-radius: 20px;
-  align-items: center;
-  justify-content: center;
-`;
-
-const TabButtonText = styled.Text<{ isActive: boolean }>`
-  font-size: 13px;
-  font-weight: 600;
-  color: ${props => props.isActive ? '#3b5998' : '#9ca3af'};
-`;
-
 const TableHeaderContainer = styled.View`
   flex-direction: row;
   align-items: center;
@@ -259,45 +202,6 @@ const ListSeparator = styled.View`
   background-color: #f3f4f6;
 `;
 
-const RowContainer = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding-vertical: 16px;
-  padding-horizontal: 16px;
-  background-color: #ffffff;
-`;
-
-const DateColumn = styled.Text`
-  width: 25%;
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
-`;
-
-const ProductColumn = styled.Text`
-  width: 35%;
-  font-size: 12px;
-  font-weight: 600;
-  color: #4b5563;
-`;
-
-const ClientColumn = styled.View`
-  width: 40%;
-`;
-
-const ClientNameText = styled.Text`
-  font-size: 13px;
-  font-weight: 700;
-  color: #1f2937;
-`;
-
-const ClientEmailText = styled.Text`
-  font-size: 10px;
-  color: #9ca3af;
-  margin-top: 2px;
-`;
-
 export default function DashboardScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeTab, setActiveTab] = useState<'aprovadas' | 'todas'>('aprovadas');
@@ -322,16 +226,7 @@ export default function DashboardScreen() {
       <FlatList
         data={MOCK_SALES}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <RowContainer>
-            <DateColumn>{item.date}</DateColumn>
-            <ProductColumn numberOfLines={2}>{item.product}</ProductColumn>
-            <ClientColumn>
-              <ClientNameText numberOfLines={1}>{item.clientName}</ClientNameText>
-              <ClientEmailText numberOfLines={1}>{item.clientEmail}</ClientEmailText>
-            </ClientColumn>
-          </RowContainer>
-        )}
+        renderItem={({ item }) => <ItemVenda item={item} />}
         ItemSeparatorComponent={() => <ListSeparator />}
         ListHeaderComponent={
           <>
@@ -360,24 +255,20 @@ export default function DashboardScreen() {
             </SearchWrapper>
 
             <CardsWrapper>
-              <CardContainer>
-                <CardTitle>Vendas encontradas</CardTitle>
-                <CardValue>40</CardValue>
-              </CardContainer>
-              <CardContainer>
-                <CardTitle>Valor líquido</CardTitle>
-                <CardValue>R$ 10.280,00</CardValue>
-              </CardContainer>
+              <CardResumo 
+                titulo="Vendas encontradas" 
+                valor="40" 
+              />
+              <CardResumo 
+                titulo="Valor líquido" 
+                valor="R$ 10.280,00" 
+              />
             </CardsWrapper>
 
-            <TabsContainer>
-              <TabButton isActive={activeTab === 'aprovadas'} onPress={() => setActiveTab('aprovadas')}>
-                <TabButtonText isActive={activeTab === 'aprovadas'}>Aprovadas</TabButtonText>
-              </TabButton>
-              <TabButton isActive={activeTab === 'todas'} onPress={() => setActiveTab('todas')}>
-                <TabButtonText isActive={activeTab === 'todas'}>Todas</TabButtonText>
-              </TabButton>
-            </TabsContainer>
+            <FiltroStatus 
+              activeTab={activeTab} 
+              onChangeTab={setActiveTab} 
+            />
 
             <TableHeaderContainer>
               <TableHeaderLabel width="25%">DATA</TableHeaderLabel>
