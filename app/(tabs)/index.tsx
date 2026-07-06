@@ -2,7 +2,7 @@ import { CardResumo } from '@/components/CardResumo';
 import { FiltroStatus } from '@/components/FiltroStatus';
 import { ItemVenda, SaleItem } from '@/components/ItemVenda';
 import { Feather } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FlatList, Platform, StatusBar } from 'react-native';
 import styled from 'styled-components/native';
 
@@ -39,9 +39,11 @@ const CLIENTS = [
 const MOCK_SALES: SaleItem[] = Array.from({ length: 40 }, (_, index) => {
   const client = CLIENTS[index % CLIENTS.length];
   const productObj = PRODUCTS[index % PRODUCTS.length];
+  
   const day = String(29 - (index % 28)).padStart(2, '0');
   const month = String(11 - (index % 5)).padStart(2, '0');
   const date = `${day}/${month}/2025`;
+
   const approved = index % 5 !== 0;
 
   return {
@@ -176,6 +178,77 @@ const CardsWrapper = styled.View`
   gap: 12px;
 `;
 
+const ScarcityContainer = styled.View`
+  background-color: #ffffff;
+  border-radius: 8px;
+  border-width: 1px;
+  border-color: #e5e7eb;
+  padding: 16px;
+  margin-horizontal: 16px;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  shadow-color: #000;
+  shadow-offset: 0px 1px;
+  shadow-opacity: 0.03;
+  shadow-radius: 2px;
+  elevation: 1;
+`;
+
+const ScarcityTitle = styled.Text`
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+`;
+
+const ScarcityRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const ScarcityValueContainer = styled.View`
+  flex-direction: row;
+  align-items: baseline;
+  gap: 4px;
+`;
+
+const ScarcityNumber = styled.Text<{ low: boolean }>`
+  font-size: 32px;
+  font-weight: 800;
+  color: ${props => props.low ? '#ef4444' : '#007f5f'};
+`;
+
+const ScarcityUnit = styled.Text`
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+`;
+
+const ScarcityControls = styled.View`
+  flex-direction: row;
+  gap: 10px;
+`;
+
+const ScarcityButton = styled.TouchableOpacity<{ variant: 'dec' | 'inc' }>`
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${props => props.variant === 'dec' ? '#f3f4f6' : '#007f5f'};
+  border-width: ${props => props.variant === 'dec' ? '1px' : '0px'};
+  border-color: #d1d5db;
+`;
+
+const ScarcityButtonText = styled.Text<{ variant: 'dec' | 'inc' }>`
+  font-size: 18px;
+  font-weight: 700;
+  color: ${props => props.variant === 'dec' ? '#4b5563' : '#ffffff'};
+`;
+
 const TableHeaderContainer = styled.View`
   flex-direction: row;
   align-items: center;
@@ -202,9 +275,59 @@ const ListSeparator = styled.View`
   background-color: #f3f4f6;
 `;
 
+const EmptyStateContainer = styled.View`
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+`;
+
+const EmptyStateText = styled.Text`
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 8px;
+`;
+
 export default function DashboardScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeTab, setActiveTab] = useState<'aprovadas' | 'todas'>('aprovadas');
+  const [vagas, setVagas] = useState(15);
+
+  const handleIncrementVagas = () => {
+    setVagas(prev => prev + 1);
+  };
+
+  const handleDecrementVagas = () => {
+    setVagas(prev => (prev > 0 ? prev - 1 : 0));
+  };
+
+  const filteredSales = useMemo(() => {
+    const query = searchText.toLowerCase();
+    return MOCK_SALES.filter(sale => {
+      const matchesTab = activeTab === 'todas' || sale.approved;
+      const matchesSearch = 
+        sale.product.toLowerCase().includes(query) ||
+        sale.clientName.toLowerCase().includes(query) ||
+        sale.clientEmail.toLowerCase().includes(query);
+
+      return matchesTab && matchesSearch;
+    });
+  }, [activeTab, searchText]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
+  const totalSalesCount = filteredSales.length;
+
+  const totalLiquidValue = useMemo(() => {
+    const approvedFiltered = filteredSales.filter(sale => sale.approved);
+    return approvedFiltered.reduce((sum, item) => sum + item.price, 0);
+  }, [filteredSales]);
+
+  const goalProgressPercentage = 40;
 
   return (
     <ScreenContainer>
@@ -218,13 +341,13 @@ export default function DashboardScreen() {
         <HeaderRight>
           <GoalText>R$ 4,0K / R$ 10K</GoalText>
           <GoalProgressBg>
-            <GoalProgressFill progress={40} />
+            <GoalProgressFill progress={goalProgressPercentage} />
           </GoalProgressBg>
         </HeaderRight>
       </HeaderBackground>
 
       <FlatList
-        data={MOCK_SALES}
+        data={filteredSales}
         keyExtractor={item => item.id}
         renderItem={({ item }) => <ItemVenda item={item} />}
         ItemSeparatorComponent={() => <ListSeparator />}
@@ -232,7 +355,7 @@ export default function DashboardScreen() {
           <>
             <TitleSection>
               <ScreenTitle>Vendas</ScreenTitle>
-              <ExportButton activeOpacity={0.7}>
+              <ExportButton activeOpacity={0.7} onPress={() => alert('Exportando transações...')}>
                 <Feather name="file-text" size={15} color="#4b5563" />
                 <ExportText>Exportar</ExportText>
               </ExportButton>
@@ -257,13 +380,39 @@ export default function DashboardScreen() {
             <CardsWrapper>
               <CardResumo 
                 titulo="Vendas encontradas" 
-                valor="40" 
+                valor={totalSalesCount} 
               />
               <CardResumo 
                 titulo="Valor líquido" 
-                valor="R$ 10.280,00" 
+                valor={formatCurrency(totalLiquidValue)} 
               />
             </CardsWrapper>
+
+            <ScarcityContainer>
+              <ScarcityTitle>Controle de Escassez (Vagas do Lote)</ScarcityTitle>
+              <ScarcityRow>
+                <ScarcityValueContainer>
+                  <ScarcityNumber low={vagas <= 5}>{vagas}</ScarcityNumber>
+                  <ScarcityUnit>vagas restantes</ScarcityUnit>
+                </ScarcityValueContainer>
+                <ScarcityControls>
+                  <ScarcityButton 
+                    variant="dec" 
+                    onPress={handleDecrementVagas}
+                    activeOpacity={0.7}
+                  >
+                    <ScarcityButtonText variant="dec">-1</ScarcityButtonText>
+                  </ScarcityButton>
+                  <ScarcityButton 
+                    variant="inc" 
+                    onPress={handleIncrementVagas}
+                    activeOpacity={0.7}
+                  >
+                    <ScarcityButtonText variant="inc">+1</ScarcityButtonText>
+                  </ScarcityButton>
+                </ScarcityControls>
+              </ScarcityRow>
+            </ScarcityContainer>
 
             <FiltroStatus 
               activeTab={activeTab} 
@@ -276,6 +425,12 @@ export default function DashboardScreen() {
               <TableHeaderLabel width="40%">CLIENTE</TableHeaderLabel>
             </TableHeaderContainer>
           </>
+        }
+        ListEmptyComponent={
+          <EmptyStateContainer>
+            <Feather name="info" size={32} color="#9ca3af" />
+            <EmptyStateText>Nenhuma transação encontrada</EmptyStateText>
+          </EmptyStateContainer>
         }
         contentContainerStyle={{ paddingBottom: 30 }}
       />
